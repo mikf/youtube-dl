@@ -13,7 +13,11 @@ import copy
 
 from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
-from youtube_dl.compat import compat_str, compat_urllib_error
+from youtube_dl.compat import (
+    compat_cookiejar,
+    compat_str,
+    compat_urllib_error,
+)
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.postprocessor.common import PostProcessor
@@ -898,6 +902,30 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(downloaded['id'], 'testid')
         self.assertEqual(downloaded['extractor'], 'testex')
         self.assertEqual(downloaded['extractor_key'], 'TestEx')
+
+    def test_opts_cookiefile_cookiejar(self):
+        cookiefile = './test/testdata/cookies/session_cookies.txt'
+        cookiejar = compat_cookiejar.CookieJar()
+
+        with YDL() as ydl:
+            self.assertTrue(isinstance(ydl.cookiejar, compat_cookiejar.CookieJar))
+            self.assertEqual(len(list(ydl.cookiejar)), 0)
+
+        with YDL({'cookiefile': None, 'cookiejar': None}) as ydl:
+            self.assertTrue(isinstance(ydl.cookiejar, compat_cookiejar.CookieJar))
+            self.assertEqual(len(list(ydl.cookiejar)), 0)
+
+        with YDL({'cookiefile': cookiefile, 'cookiejar': None}) as ydl:
+            self.assertTrue(isinstance(ydl.cookiejar, compat_cookiejar.CookieJar))
+            self.assertEqual(len(list(ydl.cookiejar)), 2)
+
+        with YDL({'cookiefile': None, 'cookiejar': cookiejar}) as ydl:
+            self.assertTrue(ydl.cookiejar is cookiejar)
+
+        with YDL({'cookiefile': cookiefile, 'cookiejar': cookiejar}) as ydl:
+            self.assertTrue(ydl.cookiejar is not cookiejar)
+            self.assertTrue(isinstance(ydl.cookiejar, compat_cookiejar.CookieJar))
+            self.assertEqual(len(list(ydl.cookiejar)), 2)
 
 
 if __name__ == '__main__':

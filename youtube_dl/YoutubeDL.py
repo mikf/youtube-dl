@@ -208,6 +208,8 @@ class YoutubeDL(object):
                        Videos already present in the file are not downloaded
                        again.
     cookiefile:        File name where cookies should be read from and dumped to.
+    cookiejar:         A CookieJar instance where cookies are read from and
+                       written to (ignored if 'cookiefile' is given)
     nocheckcertificate:Do not verify SSL certificates
     prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
                        At the moment, this is only supported by YouTube.
@@ -2307,10 +2309,14 @@ class YoutubeDL(object):
         self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
 
         opts_cookiefile = self.params.get('cookiefile')
+        opts_cookiejar = self.params.get('cookiejar')
         opts_proxy = self.params.get('proxy')
 
         if opts_cookiefile is None:
-            self.cookiejar = compat_cookiejar.CookieJar()
+            if opts_cookiejar is None:
+                self.cookiejar = compat_cookiejar.CookieJar()
+            else:
+                self.cookiejar = opts_cookiejar
         else:
             opts_cookiefile = expand_path(opts_cookiefile)
             self.cookiejar = YoutubeDLCookieJar(opts_cookiefile)
